@@ -1,0 +1,142 @@
+import json
+class TaskManager:
+    def __init__(self):
+        self.tasks_list = []
+        self.count = 0
+
+    def add_task(self):
+        while True:
+            task_name = input("Enter The Task Name: ")
+            if task_name.lower() in ("exit", "e"):
+                break
+            status_input = input("True or False: ").strip().lower()
+            if status_input == "true":
+                status_input = True
+            elif status_input == "false":
+                status_input = False
+            else:
+                print("Invalid input. Enter True or False")
+                continue
+
+            task = { "id" : f"task{self.count + 1}" , "name" : task_name, "Done" : status_input }
+            self.count += 1
+            self.tasks_list.append(task)
+        with open("mytasks.txt", 'w') as f:
+            json.dump(self.tasks_list, f, indent=4)
+        return self.tasks_list
+
+    def view_task(self):
+        return self.tasks_list
+
+
+    def update_task_status(self):
+        while True:
+            found = False
+            update_input = input("Enter task id and status (eg. 1,True): ")
+            if update_input.lower() in ("exit", "e"):
+                print("Exiting Update...")
+                break
+            if "," not in update_input:
+                print("Invalid input format!!")
+                continue
+            task_idnum, status_input = update_input.split(",")
+            task_idnum = task_idnum.strip()
+            status_input = status_input.strip().lower()
+
+            if not task_idnum.isdigit():
+                print("Invalid id. Enter a number")
+                continue 
+            
+            if status_input == "true":
+                status_input = True
+            elif status_input == "false":
+                status_input = False
+            else:
+                print("Invalid input. Enter True or False")
+                continue
+        
+            task_id = "task" + task_idnum
+            for task in self.tasks_list:
+                if task["id"] == task_id:
+                    task["Done"] = status_input
+                    found = True
+            if found:
+                with open("mytasks.txt", 'w') as f:
+                    json.dump(self.tasks_list, f, indent=4)
+                break
+            if not found:
+                print("Id not found.")
+        return self.tasks_list
+
+    def delete_task(self):
+        task_to_delete = input("Enter task id to delete: ")
+        found = False
+        if task_to_delete.isdigit():
+            task_id = "task" + task_to_delete
+            for task in self.tasks_list:
+                if task["id"] == task_id:
+                    self.tasks_list.remove(task)
+                    found = True
+                    break
+            if not found:
+                print("Task with the given id not found.")
+        else:
+            print("Invalid input. Enter a number.")
+            return
+        with open("mytasks.txt", 'w') as f:
+            json.dump(self.tasks_list, f)
+        return self.tasks_list
+
+
+try:
+    with open("mytasks.txt", 'r') as f:
+        tasks_list = json.load(f)
+        count = len(tasks_list)
+except FileNotFoundError:
+    tasks_list = []
+    count = 0
+
+Menu = [
+    "1. Add Task",
+    "2. View Tasks",
+    "3. Update Task Status",
+    "4. Delete Task",
+    "5. Exit"
+]
+
+manager = TaskManager()
+manager.tasks_list = tasks_list
+manager.count = count
+while True:
+    print(f"What do you want to do, choose a number from below tasks:\n {Menu[0]}\n {Menu[1]}\n {Menu[2]}\n {Menu[3]}\n {Menu[4]}")
+
+    try:
+        choice = int(input("Enter your choice (1-5): "))
+    except ValueError:
+        print("Invalid Input. Enter a number between 1 - 5.")
+        continue
+
+    if choice == 1:
+        tasks = manager.add_task()
+        for task in tasks:
+            print(f"{task['id']}: {task['name']} - {'Done' if task['Done'] else 'Pending'}")
+
+    elif choice == 2:
+        tasks = manager.view_task()
+        for task in tasks:
+            print(f"{task['id']}: {task['name']} - {'Done' if task['Done'] else 'Pending'}")
+
+    elif choice == 3:
+        tasks = manager.update_task_status()
+        for task in tasks:
+            print(f"{task['id']}: {task['name']} - {'Done' if task['Done'] else 'Pending'}")
+
+    elif choice == 4:
+        tasks = manager.delete_task()
+        for task in tasks:
+            print(f"{task['id']}: {task['name']} - {'Done' if task['Done'] else 'Pending'}")
+
+    else:
+        print("Exiting... Thankyou!")
+        break
+    
